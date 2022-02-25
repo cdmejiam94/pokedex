@@ -1,15 +1,8 @@
 import React from 'react'
-const typesToArray = (types = []) => {
-    var tipo = ""
-    types.map((item) => {
-        if(tipo == ""){
-            tipo = item.type.name
-        } else {
-            tipo = tipo + " / " + item.type.name
-        }
-    })
-    return tipo
-}
+import ProjectUtils from '../util/ProjectUtils'
+
+const utils = new ProjectUtils()
+
 const Pokemons = ({pokemons = []}) => {
   return (
     <div className='row'>
@@ -22,8 +15,10 @@ const Pokemons = ({pokemons = []}) => {
                             {item.species.name}
                         </h5>
                         <hr/>
-                        <p>Type: {typesToArray(item.types)}</p>
-                        <p>Pokedex #: {item.id}</p>
+                        <p>Type: {utils.typesToArray(item.types)}</p>
+                        <h5 className='card-title text-uppercase'>
+                            Pokedex #: {item.id}
+                        </h5>
                     </div>
                 </div>
             </div>

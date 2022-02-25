@@ -1,41 +1,63 @@
 import React, {useEffect, useState} from 'react'
 import Navbar from "./components/Navbar";
 import Pokemons from './components/Pokemons';
+import Pagination from './components/Pagination';
+import SearchBar from './components/SearchBar';
+import PokeApiController from './controller/PokeApiController';
 
 function App() {
 
-  const [pokemonsObjectList, setPokemonsObjectList] = useState([]);
+  const controller = new PokeApiController()
 
-  const baseUrl = "https://pokeapi.co/api/v2/pokemon/";
+  const [pokemonsList, setPokemonsList] = useState([]);
+  
+  const [next, setNext] = useState();
+  
+  const [prev, setPrev] = useState();
 
-  const fetchPokemon = async (url) => {
-    await fetch(url)
-      .then(response => response.json())
-      .then(data => fetchPokemonData(data.results, url))
-      .catch(error => console.log(error))
+  const fetchPokemon = async (pagination) => {
+    const data = await controller.getPokemon(pagination);
+
+    setNext(data.next)
+    setPrev(data.previous)
+
+    const promises = data.results.map(async (pokemon) => {
+      return await controller.getPokemonData(pokemon.url)
+    })
+
+    const results = await Promise.all(promises)
+
+    setPokemonsList(results)
   };
 
-  const fetchPokemonData = (pokemonsNames, url) => {
-    const itemList = []
-    pokemonsNames.map((pokemon) => {
-      const pokemonUrl = url + pokemon.name
-      fetch(pokemonUrl)
-        .then(response => response.json())
-        .then(data => itemList.push(data))
-        .catch(error => console.log(error))
-    });
-    setPokemonsObjectList(itemList)
+  const onNext = () => {
+    fetchPokemon(next)
+  }
+
+  const onPrevious = () => {
+    fetchPokemon(prev)
   }
 
   useEffect(() => {
-    fetchPokemon(baseUrl)
-  }, [])
+    fetchPokemon(controller.baseUrl)
+  }, []);
+
   return (
     <>
       <Navbar brand="Pokedex Web App"/>
+      <div className='container'>
+        <SearchBar/>
+      </div>     
 
       <div className="container mt-5">
-        <Pokemons pokemons={pokemonsObjectList}/>
+        <Pokemons pokemons={pokemonsList}/>
+        <Pagination
+                className="mt-4"
+                next={next}
+                prev={prev}
+                onNext={onNext}
+                onPrevious={onPrevious}
+              />
       </div>
     </>
   );
